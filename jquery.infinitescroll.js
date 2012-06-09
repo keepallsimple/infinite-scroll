@@ -3,7 +3,7 @@
 	Infinite Scroll
 	--------------------------------
 	+ https://github.com/paulirish/infinitescroll
-	+ version 2.0b2.110628
+	+ version 2.0b2.110713
 	+ Copyright 2011 Paul Irish & Luke Shumard
 	+ Licensed under the MIT license
 	
@@ -22,6 +22,7 @@
 	
 	$.infinitescroll.defaults = {
 		loading: {
+			id:'infscr-loading',
 			finished: undefined,
 			finishedMsg: "<em>Congratulations, you've reached the end of the internet.</em>",
 			img: "http://www.infinite-scroll.com/loading.gif",
@@ -37,7 +38,7 @@
 			isDestroyed: false,
 			isDone: false, // For when it goes all the way through the archive.
 			isPaused: false,
-			currPage: 1,
+			currPage: 1
 		},
 		callback: undefined,
 		debug: false,
@@ -108,7 +109,7 @@
             if (!this._validate(options)) { return false; }
 
             // Define options and shorthand
-            var opts = this.options = $.extend({}, $.infinitescroll.defaults, options),
+            var opts = this.options = $.extend(true, {}, $.infinitescroll.defaults, options),
 				// get the relative URL - everything past the domain name.
 				relurl = /(.*?\/\/).*?(\/.*)/,
 				path = $(opts.nextSelector).attr('href');
@@ -126,7 +127,7 @@
             opts.path = this._determinepath(path);
 
             // Define loading.msg
-            opts.loading.msg = $('<div id="infscr-loading"><img alt="Loading..." src="' + opts.loading.img + '" /><div>' + opts.loading.msgText + '</div></div>');
+            opts.loading.msg = $('<div id="'+opts.loading.id+'" class="infscr-loading"><img alt="Loading..." src="' + opts.loading.img + '" /><div>' + opts.loading.msgText + '</div></div>');
 
             // Preload loading.img
             (new Image()).src = opts.loading.img;
@@ -210,8 +211,8 @@
 
                 // page= is used in drupal too but second page is page=1 not page=2:
                 // thx Jerod Fritz, vladikoff
-                if (path.match(/^(.*?page=)1(\/.*|$)/)) {
-                    path = path.match(/^(.*?page=)1(\/.*|$)/).slice(1);
+                if (pp=path.match(/^(.*?page=)1(.*|$)/)) {
+                    path = pp.slice(1);
                     return path;
                 } else {
                     this._debug('Sorry, we couldn\'t parse your Next (Previous Posts) URL. Verify your the css selector points to the correct A tag. If you still get this error: yell, scream, and kindly ask for help at infinite-scroll.com.');
@@ -320,7 +321,7 @@
 
             // smooth scroll to ease in the new content
             if (opts.animate) {
-                var scrollTo = $(window).scrollTop() + $('#infscr-loading').height() + opts.extraScrollPx + 'px';
+                var scrollTo = $(window).scrollTop() + $('#'+opts.loading.id).height() + opts.extraScrollPx + 'px';
                 $('html,body').animate({ scrollTop: scrollTo }, 800, function () { opts.state.isDuringAjax = false; });
             }
 
@@ -488,7 +489,7 @@
 	                // if we're dealing with a table we can't use DIVs
 	                box = $(opts.contentSelector).is('table') ? $('<tbody/>') : $('<div/>');
 
-	                desturl = path.join(opts.state.currPage);
+	                desturl = path.join(opts.state.currPage)+"&_r="+(new Date()).getTime();
 
 	                method = (opts.dataType == 'html' || opts.dataType == 'json') ? opts.dataType : 'html+callback';
 	                if (opts.appendCallback && opts.dataType == 'html') method += '+callback'
@@ -691,7 +692,7 @@
 
             if (scrollTimeout) { clearTimeout(scrollTimeout); }
             scrollTimeout = setTimeout(function () {
-                jQuery.event.handle.apply(context, args);
+                $.event.handle.apply(context, args);
             }, execAsap === "execAsap" ? 0 : 100);
         }
     };
